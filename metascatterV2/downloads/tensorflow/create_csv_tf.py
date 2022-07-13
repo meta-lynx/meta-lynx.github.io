@@ -6,6 +6,7 @@ import os
 import argparse
 import configparser
 import pandas as pd
+import umap
 
 
 NAMED_MODELS = ['MobileNet', 'MobileNetV2', 'ResNet50', 'ResNet101V2', 'ResNet152V2', 'ResNet50V2', \
@@ -195,10 +196,16 @@ def create_data_series(input_list, index_list, series_name):
     return new_series
 
 
-def dimensionality_reduction(features, n_dimensions=2, perplexity=50, n_iterations=500):
+def dimensionality_reduction(features, n_dimensions=3,  method='TSNE', perplexity=50, n_iterations=500):
 
-    tsne = TSNE(n_components=n_dimensions, verbose=1, perplexity=perplexity, n_iter=n_iterations)
-    reduced_coords = tsne.fit_transform(features)
+    if method=='TSNE':
+        tsne = TSNE(n_components=n_dimensions, verbose=1, perplexity=perplexity, n_iter=n_iterations)
+        reduced_coords = tsne.fit_transform(features)
+    elif method=='UMAP':
+        ufit = umap.UMAP(n_components=n_dimensions)
+        reduced_coords = ufit.fit_transform(features)
+    else:
+        print("Unrecognised dimensionality reduction method")
 
     return reduced_coords
 
@@ -251,18 +258,19 @@ def extract_model_features(model, model_name, image_list, image_shape=(224,224),
     return features_series
 
 
-def extract_embedding_coordinates(model, model_name, image_list, image_shape=(224,224)):
+def extract_embedding_coordinates(model, model_name, image_list, image_shape=(224,224), method='TSNE', stem='tsne_coords_'):
 
     features_list = extract_model_features(model, model_name, image_list, image_shape, flatten=True, create_series=False)
 
-    coords = dimensionality_reduction(features_list,2)
+    coords = dimensionality_reduction(features_list, 3, method)
 
-    # Only allow for 2 hard coded for now
+    # Only allow for 3 hard coded for now
     feature_len = len(coords[0,:])
-    if feature_len == 2:
-        XCoord = create_data_series(coords[:,0], image_list, 'Features0')
-        YCoord = create_data_series(coords[:,1], image_list, 'Features1')
-        all_coords = (XCoord, YCoord)
+    if feature_len == 3:
+        XCoord = create_data_series(coords[:,0], image_list, stem+'0')
+        YCoord = create_data_series(coords[:,1], image_list, stem+'1')
+        ZCoord = create_data_series(coords[:,2], image_list, stem+'2')
+        all_coords = (XCoord, YCoord, YCoord)
     else:
         all_coords = create_data_series([0]*len(image_list), image_list)
     
@@ -326,16 +334,22 @@ def main():
 
     # Extract embedding coordinates and metadata
     # if model exists
-    coords = extract_embedding_coordinates(feature_model, model_name, image_list, (image_size, image_size)) # TSNE Coordinates
+    coords_t = extract_embedding_coordinates(feature_model, model_name, image_list, (image_size, image_size), 'TSNE', 'tsne_coords_') # TSNE Coordinates
+    #coords_u = extract_embedding_coordinates(feature_model, model_name, image_list, (image_size, image_size), 'UMAP', 'umap_coords_') # UMAP Coordinates
     meta_data = extract_model_metadata(full_model, model_name, image_list, (image_size, image_size)) # Prediction, Confidence
     ## TO ADD - if no model, use image intensities for features
 
     # create pandas dataframe from lists
     all_data = pd.concat([Sources, Labels], axis=1)
-    all_data = pd.concat([all_data, coords[0], coords[1]], axis=1)
+    all_data = pd.concat([all_data, coords_t[0], coords_t[1], coords_t[2]], axis=1)
+    #all_data = pd.concat([all_data, coords_u[0], coords_u[1], coords_u[2]], axis=1)
     all_data = pd.concat([all_data, meta_data[0], meta_data[1]], axis=1)
 
     # save dataframe as csv   
+    # remove common prefix
+    common_length = len(os.path.commonprefix(image_list))
+    relative_path_list = ['/'+item[common_length:] for item in image_list]
+    all_data.index=relative_path_list
     all_data.index.names=["Image_path"]
     all_data.to_csv(output_filename)
 
