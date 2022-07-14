@@ -270,7 +270,7 @@ def extract_embedding_coordinates(model, model_name, image_list, image_shape=(22
         XCoord = create_data_series(coords[:,0], image_list, stem+'0')
         YCoord = create_data_series(coords[:,1], image_list, stem+'1')
         ZCoord = create_data_series(coords[:,2], image_list, stem+'2')
-        all_coords = (XCoord, YCoord, YCoord)
+        all_coords = (XCoord, YCoord, ZCoord)
     else:
         all_coords = create_data_series([0]*len(image_list), image_list)
     
@@ -335,14 +335,14 @@ def main():
     # Extract embedding coordinates and metadata
     # if model exists
     coords_t = extract_embedding_coordinates(feature_model, model_name, image_list, (image_size, image_size), 'TSNE', 'tsne_coords_') # TSNE Coordinates
-    #coords_u = extract_embedding_coordinates(feature_model, model_name, image_list, (image_size, image_size), 'UMAP', 'umap_coords_') # UMAP Coordinates
+    coords_u = extract_embedding_coordinates(feature_model, model_name, image_list, (image_size, image_size), 'UMAP', 'umap_coords_') # UMAP Coordinates
     meta_data = extract_model_metadata(full_model, model_name, image_list, (image_size, image_size)) # Prediction, Confidence
     ## TO ADD - if no model, use image intensities for features
 
     # create pandas dataframe from lists
     all_data = pd.concat([Sources, Labels], axis=1)
     all_data = pd.concat([all_data, coords_t[0], coords_t[1], coords_t[2]], axis=1)
-    #all_data = pd.concat([all_data, coords_u[0], coords_u[1], coords_u[2]], axis=1)
+    all_data = pd.concat([all_data, coords_u[0], coords_u[1], coords_u[2]], axis=1)
     all_data = pd.concat([all_data, meta_data[0], meta_data[1]], axis=1)
 
     # save dataframe as csv   

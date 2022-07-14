@@ -260,7 +260,7 @@ def main():
     # Extract embedding coordinates and metadata
     # if model exists
     coords_t = extract_embedding_coordinates(feature_model, image_list, device, transform_name, 'TSNE', 'tsne_coords_') # TSNE Coordinates
-    #coords_u = extract_embedding_coordinates(feature_model, image_list, device, transform_name, 'UMAP', 'umap_coords_') # UMAP Coordinates
+    coords_u = extract_embedding_coordinates(feature_model, image_list, device, transform_name, 'UMAP', 'umap_coords_') # UMAP Coordinates
     meta_data = extract_model_metadata(full_model, image_list, all_class_list, device, transform_name) # Prediction, Confidence
     ## TO ADD - if no model, use image intensities for features
 
@@ -269,7 +269,7 @@ def main():
     #for ii in len(coords):
     #    all_data = pd.concat([all_data, coords[ii]], axis=1)
     all_data = pd.concat([all_data, coords_t[0], coords_t[1], coords_t[2]], axis=1)
-    #all_data = pd.concat([all_data, coords_u[0], coords_u[1], coords_u[2]], axis=1)
+    all_data = pd.concat([all_data, coords_u[0], coords_u[1], coords_u[2]], axis=1)
     all_data = pd.concat([all_data, meta_data[0], meta_data[1]], axis=1)
 
     # save dataframe as csv   
