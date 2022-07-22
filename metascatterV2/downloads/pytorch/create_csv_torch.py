@@ -185,7 +185,7 @@ def extract_embedding_coordinates(model, image_list, device, transform, drtype, 
     if feature_len == 3:
         XCoord = create_data_series(coords[:,0], image_list, stem+'0')
         YCoord = create_data_series(coords[:,1], image_list, stem+'1')
-        ZCoord = create_data_series(coords[:,1], image_list, stem+'2')
+        ZCoord = create_data_series(coords[:,2], image_list, stem+'2')
         all_coords = (XCoord, YCoord, ZCoord)
     else:
         all_coords = create_data_series([0]*len(image_list), image_list)
