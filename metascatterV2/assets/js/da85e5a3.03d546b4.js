@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkmetascatter=self.webpackChunkmetascatter||[]).push([[132],{3769:function(e){e.exports=JSON.parse('{"plugin":{"name":"docusaurus-plugin-content-docs","id":"default"}}')}}]);

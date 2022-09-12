@@ -1,0 +1,6 @@
+torch
+torchvision
+pillow>=9.1.0
+pandas>=1.4.2
+sklearn
+umap-learn
